@@ -1,0 +1,97 @@
+{% extends 'layout/dual.html' %}
+
+{% block title %}Playlists{% endblock %}
+
+{% block toolbar1 %}
+    <div class="">
+        <a href="{{ url_for('app_playlist.pl_create') }}"><button class="btn btn-info"><i class="fas fa-plus"></i> New Playlist </button></a>
+        <a href="{{ url_for('app_playlist.pl_create') }}"><button class="btn btn-info"><i class="fas fa-file-import"></i> Import ModList </button></a>
+    </div>
+    <div class="">
+        <a href="{{ url_for('app_playlist.pl_import') }}"><button class="btn btn-danger"><i class="fas fa-file-import"></i> Import locally </button></a>
+    </div>
+{% endblock %}
+
+{% block content1 %}
+    <p>Playlists<p>
+    <hr>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <tbody>
+                {% for pl in data_list %}
+                    <tr class="mod_item" id="{{ pl.id }}">
+                        <td> <a href="{{ url_for('app_playlist.pl_show_id', playlist_id=pl.id ) }}">{{ pl.name }}</a></td>
+                        <td>{{ pl.user.first_name }}</td>
+                        <td>
+                            <a href="{{ url_for('app_playlist.pl_show_id', playlist_id=pl.id) }}"><button class="btn btn-sm btn-warning"><i class="far fa-edit"></i></button></a>
+                            <a href="{{ url_for('app_playlist.pl_delete_id', playlist_id=pl.id) }}"><button class="btn btn-sm btn-danger"><i class="far fa-trash-alt"></i></button></a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table> 
+    </div>
+{% endblock %}
+
+{% block content2 %}
+    <div class="row p-3 mb-1">
+        <div class="col-12">
+            <div id="dyncontent">
+                <p>Select any item on the left ...</p>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+
+
+
+
+
+{% block contentjs %}
+<script type=text/javascript >
+    $(function() {
+
+        function update_right (data)
+        {
+            mods = data['mods']
+            mods.sort(function(a, b) {
+                textA=a['mod']['name']
+                textB=b['mod']['name']
+                if (textA < textB) 
+                    return -1; 
+                if (textA > textB)
+                    return 1;
+                return 0; 
+            })
+
+            $("#dyncontent").empty()
+            html_list = $("#dyncontent").append(
+                $('<ul class="list-group mh-100">')
+            )
+            mods.forEach(function (item, index) {
+                mod = item['mod']
+                html_list.append(
+                    $("<li class='list-group-item'>").text(mod['name'])
+                )
+            });
+        }
+
+        $('.mod_item > td').on('click', function(e){
+            // Ignore children
+            if(e.target != this) return;
+
+            // Retrieve mod data
+            pl_id = $(e.target).parent().attr('id')
+            $.getJSON('/playlist/json/' + pl_id,
+                function(data) {          
+                    // Update right panel          
+                    update_right(data)
+            });
+            return false;
+        });
+    });
+</script>
+
+{% endblock %}

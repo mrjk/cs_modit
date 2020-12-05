@@ -1,0 +1,44 @@
+{% extends 'layout/main.html' %}
+
+{% macro pagination_row() %}
+    {% if self.pagination() %}
+        <div class="row my-1">
+            <div class="col-md-12">
+                {% block pagination %}{% endblock %}
+            </div>
+        </div>
+    {% endif %}
+{% endmacro %}
+
+{% macro toolbar_row() %}
+    {% if self.toolbar() %}
+        <div class="row d-flex justify-content-between p-3 mb-1">
+            {% block toolbar %} {% endblock %}
+        </div>
+    {% endif %}
+{% endmacro %}
+
+
+{% block container %}
+
+    <div class="container my-3">
+
+        <div class="row p-3 my-1">
+            <div class="col-md justify-content-md-center">
+                <h1 >{% block title %} Unset Title {% endblock %}</h1>
+            </div>
+        </div>
+
+        {{ toolbar_row() }}
+        {{ pagination_row() }}
+
+        <div class="row border p-3 my-1">
+            {% block content %} {% endblock %}
+        </div>
+
+        {{ pagination_row() }}
+
+    </div>
+
+{% endblock %}
+

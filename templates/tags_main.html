@@ -1,0 +1,252 @@
+{% extends 'layout/dual.html' %}
+  
+
+{% block contentheader %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap-treeview-1.2.0/dist/bootstrap-treeview.min.css') }}">
+{% endblock %}
+
+{% block title %}Tag management{% endblock %}
+
+
+
+
+{% block toolbar1 %}
+
+    <div class="row p-2">
+
+        <div class="col-md-6">
+            <div class="row p-2">
+                <div class="col-md-12">
+                    <!-- <form> -->
+                    <div class="form-group d-flex">
+                        <label for="input-search" class="sr-only">Search Tree:</label>
+                        <input type="input" class="form-control m-1" id="input-search" placeholder="Type to filter..." value="">
+                        <button type="button" class="btn btn-success m-1" id="btn-search">Search</button>
+                        <button type="button" class="btn btn-warning m-1" id="btn-clear-search">Clear</button>
+                        <button type="button" class="btn btn-info m-1" id="btn-import">Import</button>
+                    </div>
+                    <!-- </form> -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+
+{% block content1 %}
+    <div class="col-md-12 p-2 ">
+        <div id="treeview-src" class="treeview"></div>
+    </div>
+{% endblock %}
+
+
+
+{% block toolbar2 %}
+
+    <div class="row p-2">
+
+        <div class="col-md-6">
+            <div class="row p-2">
+                <div class="col-md-12">
+                    <!-- <form> -->
+                    <div class="form-group d-flex">
+                        <label for="input-search" class="sr-only">Search Tree:</label>
+                        <input type="input" class="form-control m-1" id="input-search" placeholder="Type to filter..." value="">
+                        <button type="button" class="btn btn-success m-1" id="btn-search">Search</button>
+                        <button type="button" class="btn btn-warning m-1" id="btn-clear-search">Clear</button>
+                        <button type="button" class="btn btn-info m-1" id="btn-import">Import</button>
+                    </div>
+                    <!-- </form> -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block content2 %}
+
+
+		<div class="col-md-6">
+            <div class="row p-2">
+                <div class="col-md-12">
+                    <a href="{{ url_for('playlist.pl_create') }}"><button class="btn btn-info"><i class="fa fa-square"></i> New ModList </button></a>
+                </div>
+            </div>
+
+            <div class="row p-2">
+                <div class="col-md-12">
+                    <div id="treeview-dst" class="treeview"></div>
+                </div>
+            </div>
+            
+        </div>
+
+    </div>
+
+
+</div>
+{% endblock %}
+
+
+{% block contentjs %}
+
+<script src="{{ url_for('static', filename='vendor/bootstrap-treeview-1.2.0/dist/bootstrap-treeview.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/jquery-sortable-0.9.13/jquery-sortable.js') }}"></script>
+
+<script type=text/javascript >
+
+
+
+
+    // Source data
+    
+    var t_options={
+            data: t1_data,
+            levels: 2,
+            
+            showIcon: true,
+            showTags: true,
+
+            multiSelect: false,
+            highlightSelected: false,
+            //selectedIcon: "fa fa-check",
+
+            expandIcon: "fa fa-plus",
+            collapseIcon: "fa fa-minus",
+            
+            //nodeIcon: 'fa fa-chevron-right',
+            //emptyIcon: "fa fa-puzzle-piece",
+
+            showCheckbox: true,
+            checkedIcon: "far fa-check-square",
+            uncheckedIcon: "far fa-square",
+
+/*
+            onNodeSelected: function(event, data) {
+                    // Your logic goes here
+                    //console.log(event)
+                    //console.log(data)
+                    nodeid=data.nodeId
+                    $("[data-nodeid='" + nodeid + "']").each(
+                        function (node, other) {
+                            //console.log(node, other)
+                            //node.draggable=true
+                            //node.attr('draggable', 'True')
+                            })
+
+                    
+                    //event.target.draggable=true
+                }
+*/
+
+        }
+    
+    var t1_data={
+        'data': {{ jsdata|safe }}
+        }
+    var t2_data={'data': []}
+    var t1_opts = Object.assign({}, t_options, t1_data);
+    var t2_opts = Object.assign({}, t_options, t2_data);
+    console.log(t2_opts)
+
+
+    // JQuery
+    $(function() {
+
+        // Source search tree
+        var $searchableTree = $('#treeview-src').treeview(t1_opts, {});
+        //var $searchableTree = $('#treeview-dst').treeview(t2_opts, {});
+
+        var search = function(e) {
+            var pattern = $('#input-search').val();
+            var options = {
+                ignoreCase: true, //$('#chk-ignore-case').is(':checked'),
+                exactMatch: false, //$('#chk-exact-match').is(':checked'),
+                revealResults: true, //$('#chk-reveal-results').is(':checked')
+                };
+
+            //console.log(pattern)
+            var results = $searchableTree.treeview('search', [ pattern, options ]);
+
+            var output = '<p>' + results.length + ' matches found</p>';
+            //console.log("Searchingnnnn 55555 ")
+            //console.log(output)
+
+            $.each(results, function (index, result) {
+                output += '<p>- ' + result.text + '</p>';
+                });
+            $('#search-output').html(output);
+        }
+
+        $('#btn-search').on('click', search);
+        $('#input-search').on('keyup', search);
+
+        $('#btn-clear-search').on('click', function (e) {
+            $searchableTree.treeview('clearSearch');
+            $('#input-search').val('');
+            $('#search-output').html('');
+        });
+
+        $('#btn-import').on('click', function (e) {
+            
+            t1=$('#treeview-src').data('treeview')
+            t2=$('#treeview-dst').data('treeview')
+
+
+            console.log(t1)
+
+            //return
+
+            t1_data=t1.nodes;
+            t2_data=t1.getChecked();
+            //n=$(nodelist)
+            //console.log(n)
+
+            // Edit nodelist
+            $(t2_data).each(function (index, o){
+                console.log(o)
+                o['state']['selected']=false
+                console.log('YOOO', t1)
+            })
+
+
+            //$('#treeview-src').treeview({data: t1_data});
+            $('#treeview-dst').treeview({data: t2_data});
+
+        });
+
+        /*
+        
+        // Dest search tree
+        $("#box-dest").on('dragover', function(ev){
+            ev.preventDefault();
+        });
+        $("#box-dest").on('drop', function (ev) {
+            //console.log(ev)
+            ev.preventDefault();
+            var data = ev.originalEvent.dataTransfer.getData("TOTOT");
+
+            ev.target.appendChild(document.getElementById(data));
+        });
+
+        $(".list-group-item.node-treeview-src").on('dragstart', function(ev){
+            
+            //console.log("Yo1")
+            //console.log(ev)
+            //console.log("Yo1")
+
+            ev.originalEvent.dataTransfer.setData("TOTOT", ev.target.id);
+        });
+
+        $(".list-group-item.node-treeview-src").attr('draggable', true);
+        */
+
+
+    
+
+    });
+</script>
+
+{% endblock %}

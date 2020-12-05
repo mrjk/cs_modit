@@ -1,0 +1,16 @@
+
+{% macro pagination_row(pagination) %}
+yoooo macrooo
+    <div class="row my-1">
+        <div class="col-md-12">
+            {% block pagination %}{% endblock %}
+        </div>
+    </div>
+{% endmacro %}
+
+
+{% macro toolbar_row(toolbar) %}
+    <div class="row d-flex justify-content-between p-3 mb-1">
+        {% block toolbar %} {% endblock %}
+    </div>
+{% endmacro %}

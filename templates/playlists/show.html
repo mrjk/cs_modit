@@ -1,0 +1,64 @@
+{% extends 'layout/single.html' %}
+  
+
+{% block title %} Playlist: {{item.name}} {% endblock %}
+
+
+{% block toolbar %}
+
+    <div class="row p-2">
+        <div class="col-md-12">
+            <a href="{{ url_for('playlist.pl_list')}}"><button class='btn btn-info'> Return to list </button></a>
+        </div>
+    </div>
+
+    <div class="row p-2">
+        <div class="col-md-12">
+            <a href="{{ url_for('playlist.rest_playlist', playlist_id=item.id ) }}"><button class='btn btn-info'> Json </button></a>
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block content %}
+
+
+<div class="d-flex flex-row">
+    <div class="p-2">
+        {% if item.ws_preview_url|length > 0 %}
+            <img src="{{ item.ws_preview_url }}?imw=200&imh=200" class="img_med_thumb" alt="Preview {{ item.name }}">
+        {% elif item.com_mainpicture_url|length > 0 %}
+            <img src="{{ item.com_mainpicture_url }}?imw=200&imh=200" class="img_med_thumb" alt="Main picture of {{ item.name }}">
+        {% else%}
+            <img src="{{ url_for('static', filename='img/no-image.png') }}" class='img_small_thumb'>
+        {% endif %}
+    </div>
+    <div class="p-2 border-left">
+            <p>Name: {{item.name}} </p>
+            <p>ID: {{item.id}} </p>
+            <p>Author: {{item.user}} </p>
+            <p>Updated: {{item.created}} </p>
+            <p>Created: {{item.created}} </p>
+    </div>
+</div>
+
+<div class="row m-2">
+    <div class="col-md-2 ">
+        {# % if not meta_mod.workshop %}
+        <p>No requirements</p>
+        {% else %}
+            <p>Require:</p>
+            <lu>
+            {% for i in meta_mod.workshop.ws_requires%}
+                <li>{{ i.name }}</li>
+            {% endfor %}
+            </lu>
+        {% endif %}
+    </div>
+    <div class="col-md-10 border-left">
+        <p>Description and comments</p>
+        {{ meta_mod.workshop.ws_description | safe } #}
+    </div>
+</div>
+
+{% endblock %}

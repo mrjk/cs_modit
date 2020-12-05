@@ -1,0 +1,140 @@
+{% extends 'layout/single.html' %}
+
+<!--https://github.com/kalasoo/lovely-tag-->
+
+{% block title %} Workshop Mods {% endblock %}
+
+{% block pagination %}
+    <div class="d-flex flex-row justify-content-between" >
+
+        <div class="d-flex flex-row mt-3">
+            <div class="px-2 btn-group">
+                {{ pagination.links }}
+            </div>
+        </div>
+
+        <div class="d-flex flex-row mt-3">
+            <div class="px-2">
+                {{ pagination.info }}
+            </div>
+            <div class="px-2">
+                <p><span id="filter_results"></span></p>
+            </div>
+            <div class="px-2 btn-group">
+                {{ pagination.generate_pp() | safe }}
+            </div>
+        </div>
+
+    </div>
+{% endblock %}
+
+
+{% block toolbar %}
+    <div class="row p-2">
+        <div class="col-md-12">
+            <a href="{{ url_for('workshop.ws_mod_create') }}"><button class="btn btn-info"><i class="fa fa-plus"></i> New </button></a>
+        </div>
+    </div>
+
+    <div class="row p-4">
+        <div class="pull-left mx-3">
+                <a href="{{ url_for('workshop.rest_mods') }}"><button class='btn btn-info'> Json </button></a>
+        </div>
+        <div>
+            <div class="input-group">
+                <input class="form-control" id="myInput" type="text" placeholder="Filter ...">
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row p-2">
+            <div class="col-md-12 p-2">
+
+                <div id="filtered_rows">
+                    {% for item in pagination.items %}
+                    <div class="row filtered_row p-2" >
+                        <div class="col-md-2">
+
+                            {% if item.workshop.ws_preview_url|length %}
+                                <img src="{{ item.workshop.ws_preview_url }}?imw=200&imh=200" class='img_small_thumb'>
+                            {% elif item.workshop.com_mainpicture_url|length %}
+                                <img src="{{ item.workshop.com_mainpicture_url }}" class='img_small_thumb'>
+                            {% else %}
+                                <img src="{{ url_for('static', filename='img/no-image.png') }}" class='img_small_thumb'>
+                            {% endif %}
+                            <br>
+                            <a href="https://steamcommunity.com/sharedfiles/filedetails/?id={{ item.steam_id }}">
+                                <span class="badge badge-success align-down">steam</span></a>: 
+                            <span>{{ item.steam_id }}</span>
+
+                            <br>
+                            {{ loop.index + pagination.skip }}
+                        </div>
+
+                        <div class="col-md-10">
+
+                            <div>
+                                <a href="{{ url_for('workshop.mod_show_id', steam_id=item.steam_id) }}">
+                                    <h2 style="display: inline-block"> {{ item.name }} </h2></a>
+                                
+                                <a href="{{ url_for('workshop.mod_show_id', steam_id=item.steam_id) }}">
+                                    <span class="badge badge-warning">Edit</span></a>
+                            </div>
+
+                            <span class="badge badge-dark">{{ item.type }}</span>:
+                            {% for tag in item.mod_tagszz %}
+                                <span >{{ tag.name }} </span>
+                            {% endfor %}
+                                
+                        </div>
+
+                        <div class="col-md-12"><hr></div>
+
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>    
+{% endblock %}
+
+
+{% block contentjs %}
+<script type=text/javascript >
+    $(function() {
+
+        function visible_items() {
+            return $("#filtered_rows .filtered_row:visible").length
+        }
+        function refresh_matches() {
+            //$('#filter_results').text(visible_items() + " shown" )
+            var items=visible_items()
+            var val=`(<b>${items}</b> shown)`
+            $('#filter_results').html(val)
+        }
+
+        // Init
+        refresh_matches()
+
+        // Events
+        $("#myInput").on("keyup", function() {
+            
+            var value = $(this).val().toLowerCase();
+            console.log(value)
+
+            $("#filtered_rows .filtered_row").filter(function() {
+                //console.log($(this).text())
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1) 
+            });
+
+            refresh_matches()
+            
+        });
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends 'layout/single.html' %}
+
+{% block title %} Devel {% endblock %}
+
+{% block toolbar %}
+    <div class="">
+        <a href="#"><button class="btn btn-info"><i class="fa fa-plus"></i> New ModList </button></a>
+        <a href='#' id=ws_mod_update_steam><button class='btn btn-info'> Button 1 </button></a>
+
+    </div>
+    <div class="">
+        <a href='#' id=ws_mod_update_steam><button class='btn btn-info'> Button 1 </button></a>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div class="col-12 p-1">
+        <h6 class="">Debug Table</h6>
+        <hr>
+    
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <tbody>
+                    {% for row in data_list %}
+                        <tr>
+                            {% for col in row %}
+                                <td>{{ col }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table> 
+        </div>
+    </div>
+
+    <div class="col-12 p-1">
+        <h6 class="">Debug Table</h6>
+        <hr>
+    
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <tbody>
+                    {% for key, value in data_dict.items() %}
+                        <tr>
+                            <td>{{ key }}</td>
+                            <td>{{ value }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table> 
+        </div>
+    </div>
+{% endblock %}

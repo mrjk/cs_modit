@@ -1,0 +1,31 @@
+{% extends 'layout/modal.html' %}
+
+
+
+{% block content %}
+<form method="post">
+    
+        <div class="row">
+            <div class='col-md-12 m-1'>
+                <div class="form-group">
+
+                    <label for="pl_name">Playlist name:</label>
+                    <input type="name" class="form-control" name="pl_name" placeholder="Enter Playlist name" value="{{ request.form['pl_name'] }}">
+                </div>
+
+                <div class="custom-file">
+                    <input type="file" class="custom-file-input" id="customFile">
+                    <label class="custom-file-label" for="customFile">Choose an XML ModList file ...</label>
+                </div>
+
+            </div>
+
+
+            <div class='col-md-12 m-1 '>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+            </div>
+        </div>
+</form>
+{% endblock %}

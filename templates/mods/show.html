@@ -1,0 +1,128 @@
+{% extends 'layout/single.html' %}
+  
+
+{% block title %} Mod: {{item.name}} {% endblock %}
+
+
+{% block toolbar %}
+
+    <div class="row p-2">
+        <div class="col-md-12">
+            <a href="{{ url_for('workshop.ws_mod_edit', steam_id=item.steam_id) }}"><button class="btn btn-warning"><i class="fa fa-cloud-download"></i> Edit </button></a>
+            <a href='#' id=ws_mod_update_steam><button class='btn btn-{% if steam_mod %}info{% else %}warning{% endif %}'> Update from Steam </button></a>
+        </div>
+    </div>
+
+
+    <div class="row p-2">
+        <div class="col-md-12">
+            <a href="{{ url_for('workshop.rest_mod', steam_id=item.steam_id ) }}"><button class='btn btn-info'> Json </button></a>
+            <a href="{{ url_for('workshop.mod_fetch_steam_id', steam_id=item.steam_id ) }}"><button class='btn btn-info'> Steam Json </button></a>
+            <a href="{{ url_for('workshop.mod_list') }}"><button class='btn btn-warning'> Return to list </button></a>
+        </div>
+    </div>
+
+{% endblock %}
+
+
+{% block content %}
+
+
+<div class="d-flex flex-row">
+    <div class="p-2">
+        {% if item.ws_preview_url|length > 0 %}
+            <img src="{{ item.ws_preview_url }}?imw=200&imh=200" class="img_med_thumb" alt="Preview {{ item.name }}">
+        {% elif item.com_mainpicture_url|length > 0 %}
+            <img src="{{ item.com_mainpicture_url }}?imw=200&imh=200" class="img_med_thumb" alt="Main picture of {{ item.name }}">
+        {% else%}
+            <img src="{{ url_for('static', filename='img/no-image.png') }}" class='img_small_thumb'>
+        {% endif %}
+    </div>
+    <div class="p-2 border-left">
+            <p>Name: {{item.name}} </p>
+            <p>Steam ID: {{item.steam_id}} </p>
+            <p>Stars: 
+                {#
+                {% for i in range(5) %}
+                    {%if i < meta_mod.workshop.com_stars|int%}
+                        <span class="fa fa-star checked"></span>
+                    {%else%}
+                        <span class="fa fa-star"></span>
+                    {%endif%}
+                {% endfor%}
+                ({{meta_mod.workshop.com_stars}})
+                #}
+            </p>
+
+            <p>Type: {{item.mod_type}} </p>
+            <p>Tags: {% for i in item.mod_tags or [] %}{{ i.name}} {% endfor %} </p>
+
+    </div>
+</div>
+
+<div class="row m-2">
+    <div class="col-md-2 ">
+        {# % if not meta_mod.workshop %}
+        <p>No requirements</p>
+        {% else %}
+            <p>Require:</p>
+            <lu>
+            {% for i in meta_mod.workshop.ws_requires%}
+                <li>{{ i.name }}</li>
+            {% endfor %}
+            </lu>
+        {% endif %}
+    </div>
+    <div class="col-md-10 border-left">
+        <p>Description and comments</p>
+        {{ meta_mod.workshop.ws_description | safe } #}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block contentjs %}
+<!--script type="text/javascript" src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/jsonFormer.jquery.js') }}"></script-->
+
+<script type=text/javascript >
+
+    $(function() {
+        
+        /*Steam update button*/
+        $('a#ws_mod_update_steam').on('click', function(e) {
+
+            console.log("Starting Query ....");
+
+            e.preventDefault()
+            $.getJSON('{{ url_for("workshop.mod_fetch_steam_id", steam_id=item.steam_id ) }}',
+                function(data) {                    
+                    console.log("Query done, please refresh page!");
+                    console.log(data);
+            });
+            return false;
+        });
+
+        /*Local update button*/
+        $('a#ws_mod_update_local').on('click', function(e) {
+
+            console.log("Starting Local scan ....");
+
+            e.preventDefault()
+            $.getJSON('/exec/ws_mod_update_local/{{ id }}',
+                function(data) {                    
+                    console.log("Scan done, please refresh page!");
+                    console.log(data);
+            });
+            return false;
+        });
+    });
+</script>
+
+{% endblock %}
+
+
+
+
+
+

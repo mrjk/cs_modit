@@ -1,6 +1,82 @@
+
+html {
+    min-height: 100vh;
+}
+
+body {
+    height: 100%;
+}
+
+
 h1 {
-    border: 2px #eee solid;
-    color: brown;
     text-align: center;
     padding: 10px;
 }
+
+
+.img_small_thumb {
+    max-width:150px;
+    max-height:150px;
+}
+
+.img_med_thumb {
+    max-width:300px;
+    max-height:300px;
+}
+
+
+.checked {
+    color: orange;
+  }
+
+
+  .fa {
+	color: grey;
+}
+
+
+.list-group-item > .badge {
+    float: right;
+}
+
+.badge {
+    display: inline-block;
+    min-width: 10px;
+    padding: 3px 7px;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    background-color: #777;
+    border-radius: 10px;
+}
+
+
+
+
+
+
+
+body.dragging, body.dragging * {
+    cursor: move !important;
+  }
+  
+.dragged {
+position: absolute;
+opacity: 0.5;
+z-index: 2000;
+}
+
+.list-group li.placeholder {
+position: relative;
+/** More li styles **/
+}
+.list-group li.placeholder:before {
+position: absolute;
+/** Define arrowhead **/
+}
+
+  
