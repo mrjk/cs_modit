@@ -59,10 +59,10 @@
                     <div class="row filtered_row p-2" >
                         <div class="col-md-2">
 
-                            {% if item.workshop.ws_preview_url|length %}
-                                <img src="{{ item.workshop.ws_preview_url }}?imw=200&imh=200" class='img_small_thumb'>
-                            {% elif item.workshop.com_mainpicture_url|length %}
-                                <img src="{{ item.workshop.com_mainpicture_url }}" class='img_small_thumb'>
+                            {% if item.steam_data.ws_preview_url|length %}
+                                <img src="{{ item.steam_data.ws_preview_url }}?imw=200&imh=200" class='img_small_thumb'>
+                            {% elif item.steam_data.com_mainpicture_url|length %}
+                                <img src="{{ item.steam_data.com_mainpicture_url }}" class='img_small_thumb'>
                             {% else %}
                                 <img src="{{ url_for('static', filename='img/no-image.png') }}" class='img_small_thumb'>
                             {% endif %}

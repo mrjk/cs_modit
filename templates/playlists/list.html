@@ -8,7 +8,7 @@
         <a href="{{ url_for('app_playlist.pl_create') }}"><button class="btn btn-info"><i class="fas fa-file-import"></i> Import ModList </button></a>
     </div>
     <div class="">
-        <a href="{{ url_for('app_playlist.pl_import') }}"><button class="btn btn-danger"><i class="fas fa-file-import"></i> Import locally </button></a>
+        <a href="{#{url_for('app_playlist.pl_import') }#}"><button class="btn btn-danger"><i class="fas fa-file-import"></i> Import locally </button></a>
     </div>
 {% endblock %}
 
@@ -34,13 +34,11 @@
 {% endblock %}
 
 {% block content2 %}
-    <div class="row p-3 mb-1">
-        <div class="col-12">
+
             <div id="dyncontent">
                 <p>Select any item on the left ...</p>
             </div>
-        </div>
-    </div>
+
 {% endblock %}
 
 

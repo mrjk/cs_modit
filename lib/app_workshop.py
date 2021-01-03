@@ -113,6 +113,11 @@ def mod_show_id(steam_id):
 def mod_fetch_steam_id(steam_id):
     mod=Mod.query.filter(Mod.steam_id == str(steam_id)).one_or_none()
     r = mod.updateFromSteam() or {"ERROR":"EROOOOOOOOOORRR"}
+
+    print ("YOOO", r)
+
+    print (mod.steam_data)
+
     return make_response(r, 200)
 
 

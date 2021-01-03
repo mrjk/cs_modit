@@ -137,6 +137,11 @@ class SteamMod(db.Model, SerializerMixin):
 
     # Fields
     id = db.Column(db.Integer, primary_key=True)
+
+    steam_id = db.Column(db.String(255), nullable=False, unique=True, index=True)
+
+    mod_id = db.Column(db.Integer, db.ForeignKey('mods.id'))
+
     #comments = db.Column(db.String(255))
     #mainpicture_url = db.Column(db.String(255))
     #changes_url = db.Column(db.String(255))
@@ -192,8 +197,8 @@ class Mod(db.Model, GenericMixin, SerializerMixin):
         'mod_requires',
         'mod_type',
         'mod_tags',
-        'workshop_id',
-        'workshop'
+        #'steam_data',
+        'steam_data'
     )
 
 
@@ -222,11 +227,19 @@ class Mod(db.Model, GenericMixin, SerializerMixin):
     mod_requires = db.Column(db.Text())
     mod_tags = db.Column(db.Text())
 
-    workshop_id = db.Column(db.Integer, db.ForeignKey('steamMods.id'), nullable=True)
-    workshop = db.relationship(
-        "SteamMod")
-        #back_populates="id",
-        #viewonly=True)
+    # Steam data relationship
+    steam_data = db.relationship("SteamMod", uselist=False, backref="mods")
+
+    #workshop = steam_mod
+    #steamdata = steam_mod
+
+    #steamdata_id = db.Column(db.Integer, db.ForeignKey('steamMods.id'))
+    #steamdata = db.relationship(
+    #    "SteamMod",
+    #    back_populates="mod_id"
+    #    )
+
+    #viewonly=True)
 
     playlists = db.relationship(
         "Playlists2Mods",
@@ -314,8 +327,8 @@ class Mod(db.Model, GenericMixin, SerializerMixin):
 class Playlist(db.Model, GenericMixin, SerializerMixin):
     '''Playlist condifurations'''
     __tablename__ = 'playlists'
-    serialize_only = ('id', 'name', 'created', 'updated', 'user_id', 'user', 'mods', 'file_hash', 'file_name', 'file_date')
-
+    #serialize_only = ('id', 'name', 'created', 'updated', 'user_id', 'user', 'mods', 'file_hash', 'file_name', 'file_date')
+    serialize_only = ('id', 'name', 'created', 'updated', 'user_id', 'user', 'file_hash', 'file_name', 'file_date', 'mods' )
     # Fields
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255))
@@ -329,6 +342,8 @@ class Playlist(db.Model, GenericMixin, SerializerMixin):
     file_hash = db.Column(db.String(128))
     file_name = db.Column(db.String(128))
     file_date = db.Column(db.DateTime())
+
+    xml = db.Column(db.Text())
 
     # Relationships
     user = db.relationship("User", 
@@ -348,12 +363,21 @@ class Playlist(db.Model, GenericMixin, SerializerMixin):
 
     # OTHER METHODS (STATIC)
     
-    def createPlaylist(name, user_id=None, xml=None, **kwargs):
-        # Create the playlist
-        pl = Playlist(
-            name=name,
-            **kwargs
-        )
+    @classmethod
+    def createPlaylist(cls, name, user_id=None, xml=None, **kwargs):
+
+        pl = cls.query.filter_by(user_id=user_id,name=name).one_or_none()
+        if pl is None:
+            # Create the playlist
+            pl = cls(
+                name=name,
+                user_id=user_id,
+                xml=xml,
+                **kwargs
+            )
+        else:
+            # Just update xml
+            pl.xml = xml
         
         db.session.add(pl)
         db.session.commit()

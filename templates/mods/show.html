@@ -57,6 +57,9 @@
             <p>Type: {{item.mod_type}} </p>
             <p>Tags: {% for i in item.mod_tags or [] %}{{ i.name}} {% endfor %} </p>
 
+        <hr>
+            {{ item.mod_desc |safe }}
+
     </div>
 </div>
 

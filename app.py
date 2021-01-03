@@ -1,6 +1,6 @@
 
 import datetime
-from flask import Flask, request, render_template_string, redirect, url_for
+from flask import Flask, request, render_template, render_template_string, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_user import UserManager
@@ -45,7 +45,10 @@ class ConfigClass(object):
     # Flask-User settings
     USER_APP_NAME = "Cities Skylines: Play It!"      # Shown in and email templates and page footers
     USER_ENABLE_EMAIL = False        # Enable email authentication
-    USER_ENABLE_USERNAME = False    # Disable username authentication
+    USER_ENABLE_USERNAME = True    # Disable username authentication
+    USER_USER_SESSION_EXPIRATION = 604800
+
+
     #USER_EMAIL_SENDER_NAME = USER_APP_NAME
     #USER_EMAIL_SENDER_EMAIL = "noreply@example.com"
 
@@ -101,6 +104,12 @@ def create_app():
     def index():
         '''Welcome page'''
         return redirect(url_for('workshop.mod_list'), code=302)
+
+
+    @app.errorhandler(404)
+    def page_not_found(error):
+        '''Handle default error pages'''
+        return render_template('layout/http_4xx.html', title = '404'), 404
 
     return app
 

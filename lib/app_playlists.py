@@ -4,6 +4,11 @@ from flask_user import current_user, login_required, roles_required
 from flask_restful import Api, reqparse, abort, Resource
 from flask_paginate import Pagination, get_page_args, get_parameter
 
+
+# Import excewptions
+from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
+
+
 #from lib.workshop import *
 #from lib.database import *
 from lib.database import db, Playlist
@@ -84,40 +89,45 @@ def pl_list():
 
 @app.route('/playlist/<int:playlist_id>')
 def pl_show_id(playlist_id):
-    pl = Playlist.query.get(playlist_id)
+
+    try:
+        pl = Playlist.query.filter_by(id=playlist_id).one()
+        #pl = db.session.query(Playlist).one(playlist_id)
+    except MultipleResultsFound as e:
+        print (e)
+    except NoResultFound as e:
+        abort(404)
     return render_template('playlists/show.html', item=pl)
 
 
 
-
-    
 @app.route('/playlist/create', methods=('GET', 'POST'))
-@login_required
+#@login_required
 def pl_create():
     '''Create new mod reference'''
     if request.method == 'POST':
         pl_name = request.form['pl_name']
 
-        #pl = createPlaylist(db, pl_name, current_user.id)
-        pl = Playlist.createPlaylist(pl_name, user_id=current_user.id)
+        print ("request.form = ", request.form)
 
-        #file = request.files['file']
-        ## if user does not select file, browser also
-        ## submit an empty part without filename
-        #if file.filename == '':
-        #    flash('No selected file')
-        #    return redirect(request.url)
-        #if file and allowed_file(file.filename):
-        #    filename = secure_filename(file.filename)
-        #    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        # To be fixed !!!, ID 0 is a bad idea
+        user_id = 0
+        if current_user.is_authenticated:
+            user_id = current_user.id
+            
 
         # Fetch file config
         f = '/home/jez/.local/share/Colossal Order/Cities_Skylines/Addons/Mods/ModsList/ModsList_savefiles/NewBase2020 v5 - beta.xml'
         xml, hash = readModListFile(f)
-        mod_list, asset_list=modlist2dict(xml)
-        AddFromXML(db, pl, mod_list)        
+        mod_list, asset_list, district_list = modlist2dict(xml)
 
-        url=url_for('playlist.pl_show_id', playlist_id=pl.id )
+        # Create playlist
+        pl = Playlist.createPlaylist(pl_name, user_id=user_id, xml=xml)
+        AddFromXML(db, pl, mod_list, 'mod')
+        #AddFromXML(db, pl, asset_list, 'asset')
+        #AddFromXML(db, pl, district_list, 'district')
+
+        url=url_for('app_playlist.pl_show_id', playlist_id=pl.id )
         return redirect(url)
 
     elif request.method == 'GET':
@@ -138,28 +148,44 @@ def pl_delete_id(playlist_id):
     pl = Playlist.query.get(playlist_id)
     db.session.delete(pl)
     db.session.commit()
-    return redirect(url_for('playlist.pl_list'))
+    return redirect(url_for('app_playlist.pl_list'))
 
 
+# DEPRECATED< SHOULD USE THE CLIENT INSTEAD
 #@login_required
-@app.route('/playlist/import')
-def pl_import():
-    user_id=getattr(current_user, 'id', None)
-    importLocal(db, user_id)
-    return redirect(url_for('playlist.pl_list'))
+#@app.route('/playlist/import')
+#def pl_import():
+#    user_id=getattr(current_user, 'id', None)
+#    importLocal(db, user_id)
+#    return redirect(url_for('app_playlist.pl_list'))
 
 
 
 
-# Library
+### NEW LIB V
 
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in {'xml'}
+import hashlib
+import xml.etree.ElementTree as ET
+from lib.database import Mod, Playlists2Mods
+
+def readModListFile(f):
+    """Read file and return data and its hash"""
+
+    with open(f, 'r', encoding='utf-16') as file:
+        dataxml = file.read()
+
+    hash_md5 = hashlib.md5()
+    with open(f, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_md5.update(chunk)
+    hash=hash_md5.hexdigest()
+
+    return dataxml, hash
 
 
 def modlist2dict(dataxml):
-    import xml.etree.ElementTree as ET
+    """Read an ModList export from XML and returns a dict containing: mods, assets and disctricts"""
+    
     xmlroot = ET.fromstring(dataxml)
 
     mod_list=[]
@@ -192,37 +218,28 @@ def modlist2dict(dataxml):
         }
         district_list.append(r)
 
-    return (mod_list, asset_list)
+    return (mod_list, asset_list, district_list)
 
-
-
-
-def readModListFile(f):
-
-    with open(f, 'r', encoding='utf-16') as file:
-        dataxml = file.read()
-
-    import hashlib
-
-    hash_md5 = hashlib.md5()
-    with open(f, "rb") as f:
-        for chunk in iter(lambda: f.read(4096), b""):
-            hash_md5.update(chunk)
-    hash=hash_md5.hexdigest()
-
-
-
-    return dataxml, hash
 
 
 def AddFromXML(db, pl, mod_list, mod_type):
+    """Save a Modlist into database"""
+
+    print ("PLAYLIST", pl)
+
+    db.session.add(pl)
+    
+
     # Fetch the mods
     for mod_dict in mod_list:
         name=mod_dict.get('name', 'UnNamed')
         steam_id=mod_dict.get('id', "0")
         activated=mod_dict.get('activated', 'None')
+        print ("YOOOOO", steam_id)
 
-        mod = db.session.query(Mod).filter(Mod.steam_id == steam_id).one_or_none()
+        # Ensure the mod is present or create it
+        mod = db.session.query(Mod).filter(Mod.steam_id == steam_id).first()
+        print (mod)
         if not mod:
             mod = Mod(
                 steam_id=steam_id,
@@ -231,20 +248,41 @@ def AddFromXML(db, pl, mod_list, mod_type):
                 updated=datetime.datetime.utcnow(),
                 mod_type=mod_type
             )
+            print ("Create mod: ", mod, name)
             db.session.add(mod)
+            db.session.commit()
 
+        # Ensure the relationship does not already exists
         a = db.session.query(Playlists2Mods).filter(Playlists2Mods.playlist == pl, Playlists2Mods.mod == mod).one_or_none()
         if not a:
-            assoc = Playlists2Mods(enabled = activated, 
+            assoc = Playlists2Mods(
+                enabled = activated, 
                 mod=mod,
                 playlist=pl,
                 )
-            db.session.add(assoc)            
+            print ("Create assoc: ", assoc)
+            db.session.add(assoc)
+            db.session.commit()
             
-    db.session.add(pl)
-    db.session.commit()
+    
 
 
+
+### NEW LIB ^
+
+
+# Library TO BE CLEANED
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in {'xml'}
+
+
+
+
+
+
+# DEPRECATED< THIS TO BE USED IN CLIENT !!!!
 def importLocal(db, user_id):
 
     folder = '/home/jez/.local/share/Colossal Order/Cities_Skylines/Addons/Mods/ModsList/ModsList_savefiles/'
@@ -262,13 +300,12 @@ def importLocal(db, user_id):
 
                 xml, file_hash = readModListFile(f)
                 
-                mod_list, asset_list=modlist2dict(xml)
+                mod_list, asset_list, _=modlist2dict(xml)
                 print ("HASH", hash, mod_list)
 
                 #pl = db.session.query(Playlist).filter(Playlist.file_hash == file_hash).one_or_none()
                 pl = db.session.query(Playlist).filter(Playlist.file_hash == file_hash, Playlist.file_name == file_name).one_or_none()
                 if not pl:
-                    #pl = Playlist.createPlaylist(pl_name, user_id=user_id, file_hash=file_hash)
                     pl = Playlist.createPlaylist(pl_name, user_id=user_id, file_name=file_name, file_hash=file_hash)
 
                 AddFromXML(db, pl, mod_list, 'Mod')
@@ -282,21 +319,3 @@ def importLocal(db, user_id):
 
 
 
-
-
-# DEPRECATED FUNCTIONS
-
-
-def createPlaylist(db, pl_name, user_id):
-    print ("createPlaylist IS DEPRECATED")
-    # Create the playlist
-    pl = Playlist(
-        name=pl_name,
-        created=datetime.datetime.utcnow(),
-        updated=datetime.datetime.utcnow(),
-        user_id=user_id,
-    )
-    
-    db.session.add(pl)
-    db.session.commit()
-    return pl

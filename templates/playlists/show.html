@@ -8,13 +8,13 @@
 
     <div class="row p-2">
         <div class="col-md-12">
-            <a href="{{ url_for('playlist.pl_list')}}"><button class='btn btn-info'> Return to list </button></a>
+            <a href="{{ url_for('app_playlist.pl_list')}}"><button class='btn btn-info'> Return to list </button></a>
         </div>
     </div>
 
     <div class="row p-2">
         <div class="col-md-12">
-            <a href="{{ url_for('playlist.rest_playlist', playlist_id=item.id ) }}"><button class='btn btn-info'> Json </button></a>
+            <a href="{{ url_for('app_playlist.rest_playlist', playlist_id=item.id ) }}"><button class='btn btn-info'> Json </button></a>
         </div>
     </div>
 {% endblock %}
